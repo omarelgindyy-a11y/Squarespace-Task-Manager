@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Squarespace Task Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#F8F7F4;
+      --white:#FFFFFF;
+      --black:#0A0A0A;
+      --border:#E5E2DA;
+      --accent:#1A1A1A;
+      --green:#2A7A5A;
+      --green-light:#EAF4EE;
+      --blue:#1B4FD8;
+      --blue-light:#EEF2FD;
+      --orange:#D4600A;
+      --orange-light:#FDF0E6;
+      --red:#C0392B;
+      --red-light:#FDECEA;
+      --yellow:#B8860B;
+      --yellow-light:#FEF9E7;
+      --muted:#888078;
+      --sidebar-w:260px;
+      --radius:12px;
+    }
+    html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--black)}
+
+
+    /* ── PUBLIC PTO PAGE ── */
+    .public-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)}
+    .public-card{width:100%;max-width:500px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;box-shadow:0 4px 40px rgba(0,0,0,0.06)}
+    .public-brand{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem}
+    .public-success{text-align:center;padding:2rem 1rem;display:none}
+    .public-success-icon{font-size:3rem;margin-bottom:1rem}
+    .public-success h2{font-size:1.3rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.5rem}
+    .public-success p{font-size:0.875rem;color:var(--muted);margin-bottom:1.5rem}
+    .back-link{font-size:13px;color:var(--blue);cursor:pointer;text-decoration:underline}
+
+    /* ── LOGIN ── */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)}
+    .login-wrap::before{content:'';position:fixed;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(26,26,26,0.04) 0%,transparent 70%);pointer-events:none}
+    .login-card{width:100%;max-width:420px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;box-shadow:0 4px 40px rgba(0,0,0,0.06)}
+    .login-brand{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+    .login-logo{width:42px;height:42px;background:var(--black);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;font-weight:700;letter-spacing:-0.5px}
+    .login-brand-name{font-size:15px;font-weight:700;color:var(--black);letter-spacing:-0.3px}
+    .login-brand-sub{font-size:11px;color:var(--muted)}
+    .login-title{font-size:1.6rem;font-weight:700;letter-spacing:-0.04em;margin-bottom:0.3rem}
+    .login-sub{font-size:0.875rem;color:var(--muted);margin-bottom:1.75rem}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em}
+    .field input{width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;color:var(--black);outline:none;transition:border-color 0.2s}
+    .field input:focus{border-color:var(--black);background:var(--white)}
+    .login-btn{width:100%;padding:0.85rem;background:var(--black);color:white;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;margin-top:0.25rem}
+    .login-btn:hover{opacity:0.85}
+    .login-err{background:var(--red-light);color:var(--red);border:1px solid #FADBD8;border-radius:8px;padding:0.6rem 0.9rem;font-size:0.8rem;margin-bottom:1rem;display:none}
+    .login-footer{text-align:center;margin-top:2rem;font-size:0.72rem;color:#C0BDB5}
+
+    /* ── APP LAYOUT ── */
+    .app{display:none;min-height:100vh}
+    .app.active{display:flex}
+    .sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform 0.3s}
+    .main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
+
+    /* ── SIDEBAR ── */
+    .sb-header{padding:1.25rem 1.25rem 0.75rem;border-bottom:1px solid var(--border)}
+    .sb-brand{display:flex;align-items:center;gap:9px}
+    .sb-logo{width:36px;height:36px;background:var(--black);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:700}
+    .sb-name{font-size:13px;font-weight:700;color:var(--black);letter-spacing:-0.3px}
+    .sb-tagline{font-size:10px;color:var(--muted)}
+    .sb-nav{padding:0.75rem 0.75rem;flex:1;overflow-y:auto}
+    .sb-section{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:0.5rem 0.5rem 0.35rem;margin-top:0.5rem}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;color:#555;transition:all 0.15s;border:none;background:transparent;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif}
+    .sb-item:hover{background:var(--bg);color:var(--black)}
+    .sb-item.active{background:var(--black);color:white}
+    .sb-icon{font-size:16px;width:20px;text-align:center}
+    .sb-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+    .sb-item.active .sb-badge{background:rgba(255,255,255,0.25)}
+    .sb-footer{padding:1rem;border-top:1px solid var(--border)}
+    .sb-user{display:flex;align-items:center;gap:9px}
+    .sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;flex-shrink:0}
+    .sb-user-info{flex:1;min-width:0}
+    .sb-user-name{font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sb-user-role{font-size:11px;color:var(--muted)}
+    .sb-logout{width:28px;height:28px;border:1px solid var(--border);border-radius:7px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:background 0.15s}
+    .sb-logout:hover{background:var(--red-light)}
+
+    /* ── TOPBAR ── */
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0.875rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .topbar-title{font-size:1.1rem;font-weight:700;letter-spacing:-0.03em}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .hamburger{display:none;width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:transparent;cursor:pointer;font-size:18px;align-items:center;justify-content:center}
+
+    /* ── PAGE ── */
+    .page{padding:1.5rem;display:none;flex:1}
+    .page.active{display:block}
+
+    /* ── STATS GRID ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+    .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem}
+    .stat-icon{font-size:1.5rem;margin-bottom:0.5rem}
+    .stat-num{font-size:1.75rem;font-weight:700;letter-spacing:-0.04em;line-height:1}
+    .stat-lbl{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+
+    /* ── CARDS ── */
+    .card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+    .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+    .card-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted)}
+
+    /* ── BUTTONS ── */
+    .btn{padding:0.6rem 1.25rem;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity 0.15s,transform 0.1s;display:inline-flex;align-items:center;gap:6px}
+    .btn:active{transform:scale(0.97)}
+    .btn-black{background:var(--black);color:white}
+    .btn-black:hover{opacity:0.85}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--black)}
+    .btn-outline:hover{background:var(--bg)}
+    .btn-red{background:var(--red-light);color:var(--red);border:1px solid #FADBD8}
+    .btn-green{background:var(--green-light);color:var(--green);border:1px solid #C3E6D4}
+    .btn-sm{padding:5px 12px;font-size:12px}
+
+    /* ── BADGES ── */
+    .badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+    .b-high{background:var(--red-light);color:var(--red)}
+    .b-medium{background:var(--yellow-light);color:var(--yellow)}
+    .b-low{background:var(--green-light);color:var(--green)}
+    .b-pending{background:var(--yellow-light);color:var(--yellow)}
+    .b-in_progress{background:var(--blue-light);color:var(--blue)}
+    .b-completed{background:var(--green-light);color:var(--green)}
+    .b-delayed{background:var(--red-light);color:var(--red)}
+    .b-admin{background:var(--black);color:white}
+    .b-teamleader{background:var(--blue-light);color:var(--blue)}
+    .b-sme{background:var(--green-light);color:var(--green)}
+    .b-approved{background:var(--green-light);color:var(--green)}
+    .b-rejected{background:var(--red-light);color:var(--red)}
+
+    /* ── FORMS ── */
+    .form-grid{display:grid;gap:0.875rem}
+    .form-grid.cols2{grid-template-columns:1fr 1fr}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+    .finp,.fsel,.ftxt{width:100%;padding:0.65rem 0.875rem;border:1px solid var(--border);border-radius:9px;background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;color:var(--black);outline:none;transition:border-color 0.2s}
+    .finp:focus,.fsel:focus,.ftxt:focus{border-color:var(--black);background:var(--white)}
+    .ftxt{resize:vertical;min-height:80px}
+
+    /* ── MODAL ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease}
+    @keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+    .modal-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:1}
+    .modal-title{font-size:1rem;font-weight:700;letter-spacing:-0.02em}
+    .modal-close{width:30px;height:30px;border:1px solid var(--border);border-radius:7px;background:transparent;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+    .modal-body{padding:1.25rem 1.5rem}
+    .modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+    /* ── TASK ITEMS ── */
+    .task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+    .task-row:last-child{border-bottom:none}
+    .task-info{flex:1;min-width:0}
+    .task-title{font-size:14px;font-weight:600;color:var(--black);margin-bottom:4px}
+    .task-title.done{text-decoration:line-through;color:var(--muted)}
+    .task-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .task-time{font-size:11px;color:var(--muted)}
+    .task-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+    /* ── USER ROWS ── */
+    .user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .user-row:last-child{border-bottom:none}
+    .u-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0}
+    .u-info{flex:1;min-width:0}
+    .u-name{font-size:14px;font-weight:600}
+    .u-sub{font-size:12px;color:var(--muted)}
+    .u-actions{display:flex;gap:6px}
+
+    /* ── PROGRESS ── */
+    .prog-track{height:6px;background:var(--border);border-radius:20px;overflow:hidden;margin-top:5px}
+    .prog-bar{height:100%;background:var(--green);border-radius:20px;transition:width 0.4s}
+
+    /* ── PTO ── */
+    .pto-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+    .pto-row:last-child{border-bottom:none}
+    .pto-info{flex:1}
+    .pto-name{font-size:14px;font-weight:600}
+    .pto-dates{font-size:12px;color:var(--muted);margin-top:2px}
+    .pto-reason{font-size:12px;color:var(--muted);margin-top:2px;font-style:italic}
+
+    /* ── COMMENTS ── */
+    .comment-item{padding:10px 12px;background:var(--bg);border-radius:9px;margin-bottom:8px}
+    .comment-author{font-size:12px;font-weight:600;color:var(--black)}
+    .comment-text{font-size:13px;color:#444;margin-top:3px;line-height:1.5}
+    .comment-time{font-size:11px;color:var(--muted);margin-top:3px}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:14px}
+    .empty-icon{font-size:2.5rem;margin-bottom:0.75rem;opacity:0.4}
+
+    /* ── TABS ── */
+    .tab-bar{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:1.25rem;gap:3px}
+    .tab-btn{flex:1;padding:7px;border:none;border-radius:8px;background:transparent;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
+    .tab-btn.active{background:var(--white);color:var(--black);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+    /* ── STATUS TOAST ── */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--black);color:white;padding:0.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;z-index:999;display:none;animation:toastIn 0.3s ease}
+    @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── MOBILE ── */
+    .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}
+      .hamburger{display:flex}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+      .form-grid.cols2{grid-template-columns:1fr}
+      .sb-overlay.open{display:block}
+      .topbar-title{font-size:0.95rem}
+    }
+    @media(max-width:480px){
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .page{padding:1rem}
+    }
+
+    /* ── ATTACHMENT ── */
+    .attachment-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:9px;margin-bottom:6px}
+    .att-icon{font-size:1.25rem}
+    .att-name{font-size:13px;font-weight:500;flex:1}
+    .att-link{font-size:12px;color:var(--blue);text-decoration:none}
+    .att-link:hover{text-decoration:underline}
+
+    /* ── FOOTER ── */
+    .app-footer{text-align:center;padding:1.5rem;font-size:11px;color:#C0BDB5;border-top:1px solid var(--border);margin-top:auto}
+    .app-footer span{color:var(--muted);font-weight:600}
+  </style>
+</head>
+<body>
+
+<!-- ═══ PUBLIC PTO PAGE ═══ -->
+<div id="publicPTOWrap" class="public-wrap" style="display:none">
+  <div class="public-card">
+    <div class="public-brand">
+      <div class="login-logo">SQ</div>
+      <div>
+        <div class="login-brand-name">Squarespace Task Manager</div>
+        <div class="login-brand-sub">PTO Request Form</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div id="publicPTOForm">
+      <h2 style="font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.25rem">Request Time Off</h2>
+      <p style="font-size:0.875rem;color:var(--muted);margin-bottom:1.5rem">Fill in your details below — no login required</p>
+      <div class="form-grid" style="gap:0.875rem">
+        <div class="form-group"><label>Your Full Name</label><input class="finp" id="pub_name" placeholder="e.g. Ahmed Mohamed"/></div>
+        <div class="form-group"><label>Your Team Leader</label><select class="fsel" id="pub_tl"><option value="">-- Select Team Leader --</option></select></div>
+        <div class="form-group"><label>Department / Team</label><input class="finp" id="pub_dept" placeholder="e.g. Customer Support"/></div>
+        <div class="form-grid cols2">
+          <div class="form-group"><label>From Date</label><input class="finp" id="pub_from" type="date"/></div>
+          <div class="form-group"><label>To Date</label><input class="finp" id="pub_to" type="date"/></div>
+        </div>
+        <div class="form-group"><label>Type of Leave</label>
+          <select class="fsel" id="pub_type">
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Emergency Leave">Emergency Leave</option>
+            <option value="Unpaid Leave">Unpaid Leave</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Reason (optional)</label><textarea class="ftxt" id="pub_reason" placeholder="Any additional details..."></textarea></div>
+      </div>
+      <button class="login-btn" style="margin-top:1.25rem" onclick="submitPublicPTO()">Submit PTO Request →</button>
+      <div style="text-align:center;margin-top:1rem">
+        <span class="back-link" onclick="showLogin()">← Back to Login</span>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="public-success" id="publicPTOSuccess">
+      <div class="public-success-icon">✅</div>
+      <h2>Request Submitted!</h2>
+      <p>Your PTO request has been sent to your Team Leader and the Operations Manager for approval.</p>
+      <button class="login-btn" style="width:auto;padding:0.7rem 2rem" onclick="resetPublicPTO()">Submit Another Request</button>
+      <div style="margin-top:1rem"><span class="back-link" onclick="showLogin()">← Back to Login</span></div>
+    </div>
+
+    <div style="text-align:center;margin-top:1.5rem;font-size:0.72rem;color:#C0BDB5">© 2026 Squarespace Task Manager · Designed by Omar Elgindy</div>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-logo">SQ</div>
+      <div>
+        <div class="login-brand-name">Squarespace Task Manager</div>
+        <div class="login-brand-sub">Workspace Management System</div>
+      </div>
+    </div>
+    <h1 class="login-title">Welcome back</h1>
+    <p class="login-sub">Sign in to your account to continue</p>
+    <div class="login-err" id="loginErr">Incorrect email or password</div>
+    <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@company.com" autocomplete="email"/></div>
+    <div class="field"><label>Password</label><input id="loginPw" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
+    <button class="login-btn" onclick="doLogin()">Sign in →</button>
+    <div style="text-align:center;margin-top:1rem">
+      <span class="back-link" onclick="showPublicPTO()" style="font-size:13px;color:var(--blue)">📝 Submit a PTO Request without login →</span>
+    </div>
+    <div class="login-footer">© 2026 Squarespace Task Manager · Designed by <span style="color:#888">Omar Elgindy</span></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app" class="app">
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-brand">
+        <div class="sb-logo">SQ</div>
+        <div>
+          <div class="sb-name">Squarespace</div>
+          <div class="sb-tagline">Task Manager</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <button class="sb-item active" onclick="gotoPage('dashboard',this)"><span class="sb-icon">⊞</span> Dashboard</button>
+      <button class="sb-item" onclick="gotoPage('tasks',this)"><span class="sb-icon">✓</span> Tasks <span class="sb-badge" id="pendingBadge"></span></button>
+      <button class="sb-item" onclick="gotoPage('archive',this)"><span class="sb-icon">🗂</span> Archive</button>
+      <div class="sb-section">Team</div>
+      <button class="sb-item" id="navUsers" onclick="gotoPage('users',this)"><span class="sb-icon">👥</span> Users</button>
+      <div class="sb-section">Requests</div>
+      <button class="sb-item" onclick="gotoPage('pto',this)"><span class="sb-icon">🏖</span> PTO Requests <span class="sb-badge" id="ptoBadge"></span></button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sbAvatar"></div>
+        <div class="sb-user-info">
+          <div class="sb-user-role" id="sbUserRole" style="font-size:12px;font-weight:600;color:var(--black)"></div>
+        </div>
+        <button class="sb-logout" onclick="doLogout()" title="Sign out">⏻</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="hamburger" onclick="openSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dashStats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="dashGrid">
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Team Progress</div></div>
+          <div id="dashProgress"></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Recent Tasks</div></div>
+          <div id="dashRecent"></div>
+        </div>
+      </div>
+      <div class="app-footer">© 2026 Squarespace Task Manager · Designed & Developed by <span>Omar Elgindy</span></div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="page" id="page-tasks">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">All Tasks</div>
+          <button class="btn btn-black" onclick="openModal('taskModal')" id="addTaskBtn">+ Assign Task</button>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterTasks('all',this)">All</button>
+          <button class="tab-btn" onclick="filterTasks('pending',this)">Pending</button>
+          <button class="tab-btn" onclick="filterTasks('in_progress',this)">In Progress</button>
+          <button class="tab-btn" onclick="filterTasks('completed',this)">Completed</button>
+          <button class="tab-btn" onclick="filterTasks('delayed',this)">Delayed</button>
+        </div>
+        <div id="tasksList"></div>
+      </div>
+    </div>
+
+    <!-- ARCHIVE -->
+    <div class="page" id="page-archive">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Archived Tasks</div></div>
+        <div id="archiveList"></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Team Members</div>
+          <button class="btn btn-black" onclick="openModal('userModal')" id="addUserBtn">+ Add User</button>
+        </div>
+        <div id="usersList"></div>
+      </div>
+    </div>
+
+    <!-- PTO -->
+    <div class="page" id="page-pto">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">PTO Requests</div>
+          <button class="btn btn-black" onclick="openModal('ptoModal')">+ Request PTO</button>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterPTO('all',this)">All</button>
+          <button class="tab-btn" onclick="filterPTO('pending',this)">Pending</button>
+          <button class="tab-btn" onclick="filterPTO('tl_approved',this)">TL Approved</button>
+          <button class="tab-btn" onclick="filterPTO('approved',this)">Fully Approved</button>
+          <button class="tab-btn" onclick="filterPTO('rejected',this)">Rejected</button>
+        </div>
+        <div id="ptoList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Assign New Task</div>
+      <button class="modal-close" onclick="closeModal('taskModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:0.875rem">
+        <div class="form-group"><label>Task Title</label><input class="finp" id="tTitle" placeholder="Enter task title"/></div>
+        <div class="form-group"><label>Description</label><textarea class="ftxt" id="tDesc" placeholder="Task description..."></textarea></div>
+        <div class="form-grid cols2">
+          <div class="form-group"><label>Assign To</label><select class="fsel" id="tAssignTo"></select></div>
+          <div class="form-group"><label>Priority</label>
+            <select class="fsel" id="tPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid cols2">
+          <div class="form-group"><label>Category</label><input class="finp" id="tCat" placeholder="e.g. Operations"/></div>
+          <div class="form-group"><label>Deadline</label><input class="finp" id="tDeadline" type="date"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-black" onclick="saveTask()">Assign Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="detailTitle">Task Details</div>
+      <button class="modal-close" onclick="closeModal('taskDetailModal')">×</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot" id="detailFoot"></div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Add Team Member</div>
+      <button class="modal-close" onclick="closeModal('userModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:0.875rem">
+        <div class="form-group"><label>Full Name</label><input class="finp" id="uName" placeholder="John Doe"/></div>
+        <div class="form-group"><label>Email</label><input class="finp" id="uEmail" type="email" placeholder="john@company.com"/></div>
+        <div class="form-group"><label>Password</label><input class="finp" id="uPw" type="password" placeholder="Set password"/></div>
+        <div class="form-group"><label>Role</label>
+          <select class="fsel" id="uRole">
+            <option value="sme">SME (Agent)</option>
+            <option value="teamleader">Team Leader</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button>
+      <button class="btn btn-black" onclick="saveUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- PTO Modal -->
+<div class="modal-overlay" id="ptoModal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Request Time Off</div>
+      <button class="modal-close" onclick="closeModal('ptoModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="gap:0.875rem">
+        <div class="form-grid cols2">
+          <div class="form-group"><label>From Date</label><input class="finp" id="ptoFrom" type="date"/></div>
+          <div class="form-group"><label>To Date</label><input class="finp" id="ptoTo" type="date"/></div>
+        </div>
+        <div class="form-group"><label>Type of Leave</label>
+          <select class="fsel" id="ptoType">
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Emergency Leave">Emergency Leave</option>
+            <option value="Unpaid Leave">Unpaid Leave</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Reason</label><textarea class="ftxt" id="ptoReason" placeholder="Reason for time off..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('ptoModal')">Cancel</button>
+      <button class="btn btn-black" onclick="savePTO()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://uotkzkizubifvsxuezih.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvdGt6a2l6dWJpZnZzeHVlemloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzM0OTMsImV4cCI6MjA5MjM0OTQ5M30.6Xz8zxG7wTZuwVSZ3T3tjMqmTvrGzRHv9ltLbRtPkvQ'
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+let currentUser = null
+let allUsers = []
+let allTasks = []
+let allPTO = []
+let taskFilter = 'all'
+let ptoFilter = 'all'
+let currentTaskId = null
+
+// ── ROLE HIERARCHY ──
+const ROLE_LEVEL = { admin: 3, teamleader: 2, sme: 1 }
+function canAssignTo(fromRole, toRole) { return ROLE_LEVEL[fromRole] > ROLE_LEVEL[toRole] }
+function canDelete(userRole, taskAssignedBy) {
+  const assigner = allUsers.find(u => u.id === taskAssignedBy)
+  if (!assigner) return userRole === 'admin'
+  return ROLE_LEVEL[userRole] >= ROLE_LEVEL[assigner.role]
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim()
+  const pw = document.getElementById('loginPw').value.trim()
+  if (!email || !pw) { showLoginErr('Please fill in all fields'); return }
+  const { data, error } = await db.from('users').select('*').eq('email', email).eq('password', pw).eq('active', true)
+  if (error || !data || data.length === 0) { showLoginErr('Incorrect email or password'); return }
+  currentUser = data[0]
+  document.getElementById('loginWrap').style.display = 'none'
+  document.getElementById('app').classList.add('active')
+  document.getElementById('sbUserRole').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)
+  document.getElementById('sbAvatar').textContent = currentUser.name[0].toUpperCase()
+  if (currentUser.role === 'sme') {
+    document.getElementById('navUsers').style.display = 'none'
+    document.getElementById('addUserBtn').style.display = 'none'
+  }
+  await loadAll()
+  renderDashboard()
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('loginErr')
+  el.textContent = msg
+  el.style.display = 'block'
+}
+
+document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin() })
+
+function doLogout() {
+  currentUser = null
+  document.getElementById('loginWrap').style.display = 'flex'
+  document.getElementById('app').classList.remove('active')
+  document.getElementById('loginEmail').value = ''
+  document.getElementById('loginPw').value = ''
+  document.getElementById('loginErr').style.display = 'none'
+}
+
+// ── LOAD ALL DATA ──
+async function loadAll() {
+  const [u, t, p] = await Promise.all([
+    db.from('users').select('*').order('created_at'),
+    db.from('tasks').select('*').order('created_at', { ascending: false }),
+    db.from('pto_requests').select('*').order('created_at', { ascending: false })
+  ])
+  allUsers = u.data || []
+  allTasks = t.data || []
+  allPTO = p.data || []
+  updateBadges()
+}
+
+function updateBadges() {
+  const myTasks = allTasks.filter(t => !t.archived && t.assigned_to === currentUser.id && t.status === 'pending')
+  const pendingPTO = allPTO.filter(p => p.status === 'pending')
+  const pb = document.getElementById('pendingBadge')
+  const ptob = document.getElementById('ptoBadge')
+  pb.textContent = myTasks.length || ''
+  ptob.textContent = (currentUser.role === 'admin' ? pendingPTO.length : '') || ''
+}
+
+// ── NAVIGATION ──
+function gotoPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('active'))
+  document.getElementById('page-' + page).classList.add('active')
+  btn.classList.add('active')
+  document.getElementById('topbarTitle').textContent = btn.textContent.trim().replace(/\d+/g, '')
+  closeSidebar()
+  if (page === 'dashboard') renderDashboard()
+  if (page === 'tasks') renderTasks()
+  if (page === 'archive') renderArchive()
+  if (page === 'users') renderUsers()
+  if (page === 'pto') renderPTO()
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open')
+  document.getElementById('sbOverlay').classList.add('open')
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open')
+  document.getElementById('sbOverlay').classList.remove('open')
+}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const myTasks = currentUser.role === 'admin' ? allTasks.filter(t => !t.archived) : allTasks.filter(t => !t.archived && t.assigned_to === currentUser.id)
+  const total = myTasks.length
+  const done = myTasks.filter(t => t.status === 'completed').length
+  const pending = myTasks.filter(t => t.status === 'pending').length
+  const delayed = myTasks.filter(t => t.status === 'delayed').length
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num">${total}</div><div class="stat-lbl">Total Tasks</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" style="color:var(--green)">${done}</div><div class="stat-lbl">Completed</div></div>
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-num" style="color:var(--yellow)">${pending}</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-num" style="color:var(--red)">${delayed}</div><div class="stat-lbl">Delayed</div></div>
+  `
+
+  // Team progress (admin/teamleader only)
+  const progEl = document.getElementById('dashProgress')
+  if (currentUser.role !== 'sme') {
+    const teamUsers = allUsers.filter(u => u.role !== 'admin' && u.active)
+    progEl.innerHTML = teamUsers.length ? teamUsers.map(u => {
+      const ut = allTasks.filter(t => t.assigned_to === u.id && !t.archived)
+      const ud = ut.filter(t => t.status === 'completed').length
+      const pct = ut.length ? Math.round(ud / ut.length * 100) : 0
+      return `<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:500">${u.name}</span>
+          <span style="font-size:12px;color:var(--muted)">${ud}/${ut.length} · ${pct}%</span>
+        </div>
+        <div class="prog-track"><div class="prog-bar" style="width:${pct}%"></div></div>
+      </div>`
+    }).join('') : '<div class="empty"><div class="empty-icon">👥</div>No team members yet</div>'
+  } else {
+    const pct = total ? Math.round(done / total * 100) : 0
+    progEl.innerHTML = `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:500">My Progress</span>
+        <span style="font-size:12px;color:var(--muted)">${done}/${total} · ${pct}%</span>
+      </div>
+      <div class="prog-track"><div class="prog-bar" style="width:${pct}%"></div></div>
+    </div>`
+  }
+
+  // Recent tasks
+  const recent = myTasks.slice(0, 5)
+  document.getElementById('dashRecent').innerHTML = recent.length ? recent.map(t => {
+    const assignee = allUsers.find(u => u.id === t.assigned_to)
+    return `<div class="task-row" style="cursor:pointer" onclick="openTaskDetail('${t.id}')">
+      <div class="task-info">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          <span class="badge b-${t.priority}">${t.priority}</span>
+          <span class="badge b-${t.status}">${t.status.replace('_',' ')}</span>
+          ${assignee ? `<span class="task-time">→ ${assignee.name}</span>` : ''}
+        </div>
+      </div>
+    </div>`
+  }).join('') : '<div class="empty"><div class="empty-icon">✅</div>No tasks yet</div>'
+}
+
+// ── TASKS ──
+function renderTasks() {
+  // Populate assign-to dropdown based on hierarchy
+  const assignable = allUsers.filter(u => u.active && canAssignTo(currentUser.role, u.role))
+  const sel = document.getElementById('tAssignTo')
+  sel.innerHTML = assignable.map(u => `<option value="${u.id}">${u.name} (${u.role})</option>`).join('')
+  if (!assignable.length) document.getElementById('addTaskBtn').style.display = 'none'
+  else document.getElementById('addTaskBtn').style.display = ''
+
+  let tasks = allTasks.filter(t => !t.archived)
+  if (currentUser.role !== 'admin') {
+    tasks = tasks.filter(t => t.assigned_to === currentUser.id || t.assigned_by === currentUser.id)
+  }
+  if (taskFilter !== 'all') tasks = tasks.filter(t => t.status === taskFilter)
+
+  const list = document.getElementById('tasksList')
+  list.innerHTML = tasks.length ? tasks.map(t => {
+    const assignee = allUsers.find(u => u.id === t.assigned_to)
+    const assigner = allUsers.find(u => u.id === t.assigned_by)
+    const canDel = canDelete(currentUser.role, t.assigned_by)
+    return `<div class="task-row">
+      <div class="task-info" style="cursor:pointer" onclick="openTaskDetail('${t.id}')">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          <span class="badge b-${t.priority}">${t.priority}</span>
+          <span class="badge b-${t.status}">${t.status.replace('_',' ')}</span>
+          ${t.category ? `<span class="task-time">📁 ${t.category}</span>` : ''}
+          ${t.deadline ? `<span class="task-time">📅 ${t.deadline}</span>` : ''}
+          ${assignee ? `<span class="task-time">→ ${assignee.name}</span>` : ''}
+          ${assigner ? `<span class="task-time">by ${assigner.name}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        ${canDel ? `<div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="archiveTask('${t.id}')">Archive</button>
+          <button class="btn btn-red btn-sm" onclick="deleteTask('${t.id}')">Delete</button>
+        </div>` : ''}
+      </div>
+    </div>`
+  }).join('') : '<div class="empty"><div class="empty-icon">✓</div>No tasks found</div>'
+}
+
+function filterTasks(f, btn) {
+  taskFilter = f
+  document.querySelectorAll('#page-tasks .tab-btn').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  renderTasks()
+}
+
+async function saveTask() {
+  const title = document.getElementById('tTitle').value.trim()
+  const desc = document.getElementById('tDesc').value.trim()
+  const assigned_to = document.getElementById('tAssignTo').value
+  const priority = document.getElementById('tPriority').value
+  const category = document.getElementById('tCat').value.trim()
+  const deadline = document.getElementById('tDeadline').value
+  if (!title || !assigned_to) { showToast('Please fill required fields'); return }
+  const { error } = await db.from('tasks').insert([{
+    title, description: desc, assigned_to, assigned_by: currentUser.id,
+    priority, category, deadline: deadline || null, status: 'pending'
+  }])
+  if (error) { showToast('Error: ' + error.message); return }
+  closeModal('taskModal')
+  document.getElementById('tTitle').value = ''
+  document.getElementById('tDesc').value = ''
+  document.getElementById('tCat').value = ''
+  document.getElementById('tDeadline').value = ''
+  showToast('✓ Task assigned successfully!')
+  await loadAll()
+  renderTasks()
+}
+
+async function archiveTask(id) {
+  if (!confirm('Archive this task?')) return
+  await db.from('tasks').update({ archived: true }).eq('id', id)
+  showToast('Task archived')
+  await loadAll()
+  renderTasks()
+}
+
+// ── TASK DETAIL ──
+async function openTaskDetail(id) {
+  currentTaskId = id
+  const task = allTasks.find(t => t.id === id)
+  if (!task) return
+  const assignee = allUsers.find(u => u.id === task.assigned_to)
+  const assigner = allUsers.find(u => u.id === task.assigned_by)
+
+  // Load comments
+  const { data: comments } = await db.from('task_comments').select('*').eq('task_id', id).order('created_at')
+  // Load attachments
+  const { data: attachments } = await db.from('task_attachments').select('*').eq('task_id', id)
+
+  document.getElementById('detailTitle').textContent = task.title
+
+  const canChangeStatus = task.assigned_to === currentUser.id || ROLE_LEVEL[currentUser.role] >= ROLE_LEVEL[(assigner?.role || 'sme')]
+
+  document.getElementById('detailBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem">
+      <span class="badge b-${task.priority}">${task.priority} priority</span>
+      <span class="badge b-${task.status}">${task.status.replace('_',' ')}</span>
+      ${task.category ? `<span class="badge" style="background:var(--bg);color:var(--muted)">${task.category}</span>` : ''}
+    </div>
+    ${task.description ? `<p style="font-size:14px;color:#444;line-height:1.6;margin-bottom:1rem">${task.description}</p>` : ''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.25rem">
+      ${assignee ? `<div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Assigned To</div><div style="font-size:13px;font-weight:500">${assignee.name}</div></div>` : ''}
+      ${assigner ? `<div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Assigned By</div><div style="font-size:13px;font-weight:500">${assigner.name}</div></div>` : ''}
+      ${task.deadline ? `<div><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Deadline</div><div style="font-size:13px;font-weight:500">${task.deadline}</div></div>` : ''}
+    </div>
+    ${canChangeStatus ? `<div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Update Status</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${['pending','in_progress','completed','delayed'].map(s => `<button class="btn btn-sm ${task.status===s?'btn-black':'btn-outline'}" onclick="updateTaskStatus('${id}','${s}')">${s.replace('_',' ')}</button>`).join('')}
+      </div>
+    </div>` : ''}
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Attachments (${attachments?.length || 0})</div>
+      ${attachments?.length ? attachments.map(a => `<div class="attachment-item"><span class="att-icon">📎</span><span class="att-name">${a.file_name}</span><a class="att-link" href="${a.file_url}" target="_blank">View</a></div>`).join('') : '<div style="font-size:13px;color:var(--muted)">No attachments</div>'}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="finp" id="attName" placeholder="File name" style="flex:1"/>
+        <input class="finp" id="attUrl" placeholder="File URL/link" style="flex:2"/>
+        <button class="btn btn-black btn-sm" onclick="addAttachment('${id}')">Add</button>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Comments (${comments?.length || 0})</div>
+      <div id="commentsList">${comments?.length ? comments.map(c => {
+        const cu = allUsers.find(u => u.id === c.user_id)
+        return `<div class="comment-item"><div class="comment-author">${cu?.name || 'Unknown'}</div><div class="comment-text">${c.comment}</div><div class="comment-time">${new Date(c.created_at).toLocaleDateString()}</div></div>`
+      }).join('') : '<div style="font-size:13px;color:var(--muted);margin-bottom:8px">No comments yet</div>'}</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="finp" id="newComment" placeholder="Write a comment..." style="flex:1"/>
+        <button class="btn btn-black btn-sm" onclick="addComment('${id}')">Send</button>
+      </div>
+    </div>
+  `
+  document.getElementById('detailFoot').innerHTML = `<button class="btn btn-outline" onclick="closeModal('taskDetailModal')">Close</button>`
+  openModal('taskDetailModal')
+}
+
+async function updateTaskStatus(id, status) {
+  await db.from('tasks').update({ status }).eq('id', id)
+  showToast('✓ Status updated!')
+  await loadAll()
+  closeModal('taskDetailModal')
+  renderTasks()
+  renderDashboard()
+}
+
+async function addComment(taskId) {
+  const comment = document.getElementById('newComment').value.trim()
+  if (!comment) return
+  await db.from('task_comments').insert([{ task_id: taskId, user_id: currentUser.id, comment }])
+  document.getElementById('newComment').value = ''
+  showToast('✓ Comment added!')
+  openTaskDetail(taskId)
+}
+
+async function addAttachment(taskId) {
+  const file_name = document.getElementById('attName').value.trim()
+  const file_url = document.getElementById('attUrl').value.trim()
+  if (!file_name || !file_url) { showToast('Please fill both fields'); return }
+  await db.from('task_attachments').insert([{ task_id: taskId, file_name, file_url, uploaded_by: currentUser.id }])
+  document.getElementById('attName').value = ''
+  document.getElementById('attUrl').value = ''
+  showToast('✓ Attachment added!')
+  openTaskDetail(taskId)
+}
+
+// ── ARCHIVE ──
+function renderArchive() {
+  const archived = currentUser.role === 'admin' ? allTasks.filter(t => t.archived) : allTasks.filter(t => t.archived && (t.assigned_to === currentUser.id || t.assigned_by === currentUser.id))
+  document.getElementById('archiveList').innerHTML = archived.length ? archived.map(t => {
+    const assignee = allUsers.find(u => u.id === t.assigned_to)
+    const canDel = canDelete(currentUser.role, t.assigned_by)
+    return `<div class="task-row">
+      <div class="task-info">
+        <div class="task-title done">${t.title}</div>
+        <div class="task-meta">
+          <span class="badge b-${t.status}">${t.status.replace('_',' ')}</span>
+          ${assignee ? `<span class="task-time">→ ${assignee.name}</span>` : ''}
+          ${t.deadline ? `<span class="task-time">📅 ${t.deadline}</span>` : ''}
+        </div>
+      </div>
+      ${canDel ? `<button class="btn btn-red btn-sm" onclick="deleteTask('${t.id}')">Delete</button>` : ''}
+    </div>`
+  }).join('') : '<div class="empty"><div class="empty-icon">🗂</div>No archived tasks</div>'
+}
+
+async function deleteTask(id) {
+  if (!confirm('Permanently delete this task? This cannot be undone.')) return
+  await db.from('task_comments').delete().eq('task_id', id)
+  await db.from('task_attachments').delete().eq('task_id', id)
+  await db.from('tasks').delete().eq('id', id)
+  showToast('Task permanently deleted')
+  await loadAll()
+  renderArchive()
+}
+
+// ── USERS ──
+function renderUsers() {
+  document.getElementById('usersList').innerHTML = allUsers.map(u => `
+    <div class="user-row">
+      <div class="u-avatar" style="background:${u.role==='admin'?'#1A1A1A':u.role==='teamleader'?'#1B4FD8':'#2A7A5A'}">${u.name[0].toUpperCase()}</div>
+      <div class="u-info">
+        <div class="u-name">${u.name} <span class="badge b-${u.role}">${u.role}</span></div>
+        <div class="u-sub">${u.email} · ${allTasks.filter(t=>t.assigned_to===u.id&&!t.archived).length} active tasks · <span style="color:${u.active?'var(--green)':'var(--red)'}">${u.active?'Active':'Inactive'}</span></div>
+      </div>
+      <div class="u-actions">
+        ${u.id !== currentUser.id ? `
+          <button class="btn btn-outline btn-sm" onclick="toggleUser('${u.id}',${u.active})">${u.active?'Disable':'Enable'}</button>
+        ` : '<span style="font-size:11px;color:var(--muted)">You</span>'}
+      </div>
+    </div>
+  `).join('')
+}
+
+async function saveUser() {
+  const name = document.getElementById('uName').value.trim()
+  const email = document.getElementById('uEmail').value.trim()
+  const password = document.getElementById('uPw').value.trim()
+  const role = document.getElementById('uRole').value
+  if (!name || !email || !password) { showToast('Please fill all fields'); return }
+  const { error } = await db.from('users').insert([{ name, email, password, role }])
+  if (error) { showToast('Error: ' + error.message); return }
+  closeModal('userModal')
+  document.getElementById('uName').value = ''
+  document.getElementById('uEmail').value = ''
+  document.getElementById('uPw').value = ''
+  showToast('✓ User created!')
+  await loadAll()
+  renderUsers()
+}
+
+async function toggleUser(id, active) {
+  await db.from('users').update({ active: !active }).eq('id', id)
+  showToast(active ? 'User disabled' : 'User enabled')
+  await loadAll()
+  renderUsers()
+}
+
+// ── PTO ──
+function renderPTO() {
+  let pto = allPTO
+  if (currentUser.role === 'teamleader') {
+    pto = allPTO.filter(p => p.user_id === currentUser.id || p.teamleader_id === currentUser.id)
+  } else if (currentUser.role === 'sme') {
+    pto = allPTO.filter(p => p.user_id === currentUser.id)
+  }
+  if (ptoFilter !== 'all') pto = pto.filter(p => p.status === ptoFilter)
+
+  document.getElementById('ptoList').innerHTML = pto.length ? pto.map(p => {
+    const user = allUsers.find(u => u.id === p.user_id)
+    const tl = allUsers.find(u => u.id === p.teamleader_id)
+    const agentName = p.agent_name || user?.name || 'Unknown'
+    const tlApproved = p.tl_approved
+    const adminApproved = p.admin_approved
+
+    // Dual approval status display
+    const approvalStatus = () => {
+      if (p.status === 'rejected') return `<span class="badge b-rejected">Rejected</span>`
+      if (p.status === 'approved') return `<span class="badge b-approved">✓ Fully Approved</span>`
+      if (tlApproved && !adminApproved) return `<span class="badge b-in_progress">TL Approved · Awaiting Manager</span>`
+      if (!tlApproved && adminApproved) return `<span class="badge b-in_progress">Manager Approved · Awaiting TL</span>`
+      return `<span class="badge b-pending">Pending Approval</span>`
+    }
+
+    const canTLApprove = currentUser.role === 'teamleader' && p.teamleader_id === currentUser.id && !tlApproved && p.status === 'pending'
+    const canAdminApprove = currentUser.role === 'admin' && !adminApproved && p.status !== 'rejected'
+
+    return `<div class="pto-row">
+      <div class="pto-info">
+        <div class="pto-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:600">${agentName}</span>
+          ${approvalStatus()}
+        </div>
+        <div class="pto-dates">📅 ${p.from_date} → ${p.to_date} · ${p.leave_type || 'Leave'}</div>
+        ${p.department ? `<div class="pto-dates">🏢 ${p.department}</div>` : ''}
+        ${tl ? `<div class="pto-dates">👤 TL: ${tl.name} ${tlApproved ? '✓' : '⏳'}</div>` : ''}
+        ${p.reason ? `<div class="pto-reason">"${p.reason}"</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        ${canTLApprove ? `
+          <button class="btn btn-green btn-sm" onclick="reviewPTODual('${p.id}','tl_approve')">Approve (TL)</button>
+          <button class="btn btn-red btn-sm" onclick="reviewPTODual('${p.id}','reject')">Reject</button>
+        ` : ''}
+        ${canAdminApprove ? `
+          <button class="btn btn-green btn-sm" onclick="reviewPTODual('${p.id}','admin_approve')">Approve (Manager)</button>
+          <button class="btn btn-red btn-sm" onclick="reviewPTODual('${p.id}','reject')">Reject</button>
+        ` : ''}
+      </div>
+    </div>`
+  }).join('') : '<div class="empty"><div class="empty-icon">🏖</div>No PTO requests</div>'
+}
+
+function filterPTO(f, btn) {
+  ptoFilter = f
+  document.querySelectorAll('#page-pto .tab-btn').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  renderPTO()
+}
+
+async function reviewPTODual(id, action) {
+  const pto = allPTO.find(p => p.id === id)
+  if (!pto) return
+  let updates = {}
+  if (action === 'tl_approve') {
+    updates.tl_approved = true
+    if (pto.admin_approved) updates.status = 'approved'
+    showToast('✓ Approved as Team Leader!')
+  } else if (action === 'admin_approve') {
+    updates.admin_approved = true
+    if (pto.tl_approved) updates.status = 'approved'
+    showToast('✓ Approved as Operations Manager!')
+  } else if (action === 'reject') {
+    updates.status = 'rejected'
+    showToast('Request rejected')
+  }
+  await db.from('pto_requests').update(updates).eq('id', id)
+  await loadAll()
+  renderPTO()
+}
+
+async function savePTO() {
+  const from_date = document.getElementById('ptoFrom').value
+  const to_date = document.getElementById('ptoTo').value
+  const reason = document.getElementById('ptoReason').value.trim()
+  const leave_type = document.getElementById('ptoType').value
+  if (!from_date || !to_date) { showToast('Please select dates'); return }
+  const { error } = await db.from('pto_requests').insert([{
+    user_id: currentUser.id,
+    agent_name: currentUser.name,
+    from_date, to_date, reason, leave_type,
+    tl_approved: false, admin_approved: false, status: 'pending'
+  }])
+  if (error) { showToast('Error: ' + error.message); return }
+  closeModal('ptoModal')
+  document.getElementById('ptoFrom').value = ''
+  document.getElementById('ptoTo').value = ''
+  document.getElementById('ptoReason').value = ''
+  showToast('✓ PTO request submitted!')
+  await loadAll()
+  renderPTO()
+}
+
+// reviewPTO replaced by reviewPTODual
+
+// ── MODALS ──
+function openModal(id) { document.getElementById(id).classList.add('open') }
+function closeModal(id) { document.getElementById(id).classList.remove('open') }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open') })
+})
+
+// ── TOAST ──
+let toastTimer
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.style.display = 'block'
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => t.style.display = 'none', 3000)
+}
+
+// ── PUBLIC PTO (no login) ──
+function showPublicPTO() {
+  document.getElementById('loginWrap').style.display = 'none'
+  document.getElementById('publicPTOWrap').style.display = 'flex'
+  loadTeamLeaders()
+}
+
+function showLogin() {
+  document.getElementById('publicPTOWrap').style.display = 'none'
+  document.getElementById('loginWrap').style.display = 'flex'
+}
+
+async function loadTeamLeaders() {
+  const { data } = await db.from('users').select('*').eq('role', 'teamleader').eq('active', true)
+  const sel = document.getElementById('pub_tl')
+  sel.innerHTML = '<option value="">-- Select Team Leader --</option>'
+  if (data) data.forEach(u => { sel.innerHTML += `<option value="${u.id}">${u.name}</option>` })
+}
+
+async function submitPublicPTO() {
+  const agent_name = document.getElementById('pub_name').value.trim()
+  const teamleader_id = document.getElementById('pub_tl').value
+  const department = document.getElementById('pub_dept').value.trim()
+  const from_date = document.getElementById('pub_from').value
+  const to_date = document.getElementById('pub_to').value
+  const leave_type = document.getElementById('pub_type').value
+  const reason = document.getElementById('pub_reason').value.trim()
+
+  if (!agent_name || !teamleader_id || !from_date || !to_date) {
+    alert('Please fill in all required fields (Name, Team Leader, Dates)')
+    return
+  }
+
+  const { error } = await db.from('pto_requests').insert([{
+    agent_name, teamleader_id, department,
+    from_date, to_date, leave_type, reason,
+    tl_approved: false, admin_approved: false, status: 'pending'
+  }])
+
+  if (error) { alert('Error submitting: ' + error.message); return }
+
+  document.getElementById('publicPTOForm').style.display = 'none'
+  document.getElementById('publicPTOSuccess').style.display = 'block'
+}
+
+function resetPublicPTO() {
+  document.getElementById('pub_name').value = ''
+  document.getElementById('pub_tl').value = ''
+  document.getElementById('pub_dept').value = ''
+  document.getElementById('pub_from').value = ''
+  document.getElementById('pub_to').value = ''
+  document.getElementById('pub_reason').value = ''
+  document.getElementById('publicPTOForm').style.display = 'block'
+  document.getElementById('publicPTOSuccess').style.display = 'none'
+}
+</script>
+</body>
+</html>
